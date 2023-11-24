@@ -8,34 +8,55 @@
   let password = '';
   let username = '';
   let isLogin = false;
+  let errorMessage = '';
 
   function validateUsername(username) {
-    // Basic validation: Length check and allowed characters (alphanumeric and underscores)
     return /^[a-zA-Z0-9_]{3,15}$/.test(username);
   }
 
+  function validateEmail(email) {
+    return /\S+@\S+\.\S+/.test(email);
+  }
+
   async function handleSignUp() {
+    errorMessage = '';
     if (!validateUsername(username)) {
-      alert('Invalid username. Use 3-15 characters and include only letters, numbers, and underscores.');
+      errorMessage = 'Invalid username. Use 3-15 characters and include only letters, numbers, and underscores.';
+      return;
+    }
+    if (!validateEmail(email)) {
+      errorMessage = 'Invalid email format.';
+      return;
+    }
+    if (password.length < 6) {
+      errorMessage = 'Password must be at least 6 characters long.';
       return;
     }
     
-    // Proceed with sign-up process
     try {
       await signUpWithEmail(email, password);
-      // Here, you should also handle saving the username to the user's profile
       closeModal();
     } catch (error) {
-      console.error('Error signing up: ', error);
+      errorMessage = 'Error signing up: ' + error.message;
     }
   }
 
   async function handleLogin() {
+    errorMessage = '';
+    if (!validateEmail(email)) {
+      errorMessage = 'Invalid email format.';
+      return;
+    }
+    if (password.length < 6) {
+      errorMessage = 'Password must be at least 6 characters long.';
+      return;
+    }
+
     try {
       await signInWithEmail(email, password);
       closeModal();
     } catch (error) {
-      console.error('Error logging in: ', error);
+      errorMessage = 'Error logging in: ' + error.message;
     }
   }
 
@@ -44,7 +65,7 @@
       await signInWithGoogle();
       closeModal();
     } catch (error) {
-      console.error('Error signing in with Google: ', error);
+      errorMessage = 'Error signing in with Google: ' + error.message;
     }
   }
 
@@ -94,6 +115,10 @@
       &#10005;
     </button>
 
+    {#if errorMessage}
+     <p class="text-red-500 text-sm mb-2">{errorMessage}</p>
+    {/if}
+
     {#if !isLogin}
       <input
         class="border p-2 rounded w-full mb-4"
@@ -142,7 +167,7 @@
 
     <div class="flex items-center my-4">
       <hr class="flex-grow border-t border-gray-300">
-      <span class="mx-4 text-gray-500">{isLogin ? 'or' : ''}</span>
+      <span class="mx-4 text-gray-500">or</span>
       <hr class="flex-grow border-t border-gray-300">
     </div>
 
@@ -167,5 +192,3 @@
     {/if}
   </div>
 </div>
-
-

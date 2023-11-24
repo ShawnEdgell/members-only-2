@@ -10,14 +10,23 @@
   let messageContainer;
   let user = null;
 
-  auth.onAuthStateChanged(u => user = u);
+  auth.onAuthStateChanged(async (u) => {
+    user = u;
+    if (user) {
+      await fetchMessages();
+    }
+  });
 
-  onMount(() => {
+  function fetchMessages() {
     const messagesRef = query(collection(db, 'messages'), orderBy('timestamp'));
     onSnapshot(messagesRef, snapshot => {
       messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       scrollToBottom();
     });
+  }
+
+  onMount(() => {
+    fetchMessages();
   });
 
   async function sendMessage() {
@@ -25,7 +34,7 @@
     try {
       await addDoc(collection(db, 'messages'), {
         text: newMessage,
-        author: user.displayName || user.email, // Or another identifier
+        author: user.displayName || user.email, // Use the identifier as per your app logic
         timestamp: serverTimestamp()
       });
       newMessage = '';
@@ -43,9 +52,12 @@
   }
 
   async function scrollToBottom() {
-    await tick();
+  await tick();
+  if (messageContainer) {
     messageContainer.scrollTop = messageContainer.scrollHeight;
   }
+}
+
 </script>
 
 <div class="flex flex-col" style="height: calc(100vh - 8rem);">
