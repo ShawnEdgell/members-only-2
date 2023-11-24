@@ -1,12 +1,10 @@
 <script>
   import Chat from './components/Chat.svelte';
-  import SignInModal from './components/SignInModal.svelte';
-  import SignUpModal from './components/SignUpModal.svelte';
+  import SignInSignUpModal from './components/SignInSignUpModal.svelte'; // Import unified modal
   import { user } from './stores/userStore.js';
   import { signOutUser } from '../firebase.js';
 
-  let showSignInModal = false;
-  let showSignUpModal = false;
+  let showModal = false;
 
   async function handleLogout() {
     try {
@@ -16,22 +14,12 @@
     }
   }
 
-  function openSignInModal() {
-    showSignInModal = true;
-    showSignUpModal = false;
+  function openModal() {
+    showModal = true;
   }
 
-  function closeSignInModal() {
-    showSignInModal = false;
-  }
-
-  function openSignUpModal() {
-    showSignUpModal = true;
-    showSignInModal = false;
-  }
-
-  function closeSignUpModal() {
-    showSignUpModal = false;
+  function closeModal() {
+    showModal = false;
   }
 </script>
 
@@ -48,23 +36,15 @@
           </button>
         {:else}
           <button 
-            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 mr-2"
-            on:click={openSignInModal}>
-            Login
-          </button>
-          <button 
             class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-            on:click={openSignUpModal}>
-            Sign Up
+            on:click={openModal}>
+            Login
           </button>
         {/if}
       </div>
     </header>
-    {#if showSignInModal}
-      <SignInModal {closeSignInModal} />
-    {/if}
-    {#if showSignUpModal}
-      <SignUpModal {closeSignUpModal} />
+    {#if showModal}
+      <SignInSignUpModal {closeModal} />
     {/if}
     <Chat />
   </div>
