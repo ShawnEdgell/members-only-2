@@ -1,7 +1,7 @@
 <script>
   import { onMount, tick } from 'svelte';
   import { auth } from '../../firebase.js';
-  import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+  import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, getDoc } from 'firebase/firestore';
   import { db } from '../../firebase.js';
   import Message from './Message.svelte';
 
@@ -30,19 +30,32 @@
   });
 
   async function sendMessage() {
-    if (!user || newMessage.trim() === '') return;
-    try {
-      await addDoc(collection(db, 'messages'), {
-        text: newMessage,
-        author: user.displayName || user.email, // Use the identifier as per your app logic
-        timestamp: serverTimestamp()
-      });
-      newMessage = '';
-      scrollToBottom();
-    } catch (error) {
-      console.error("Error sending message: ", error);
-    }
+  if (!user || newMessage.trim() === '') return;
+  
+  let authorName = '';
+  
+  // Fetch the username from Firestore
+  const userDocRef = doc(db, 'users', user.uid);
+  const userDoc = await getDoc(userDocRef);
+  if (userDoc.exists()) {
+    authorName = userDoc.data().username;
+  } else {
+    // Fallback to email if username is not found
+    authorName = user.email;
   }
+
+  try {
+    await addDoc(collection(db, 'messages'), {
+      text: newMessage,
+      author: authorName, // Use the fetched username
+      timestamp: serverTimestamp()
+    });
+    newMessage = '';
+    scrollToBottom();
+  } catch (error) {
+    console.error("Error sending message: ", error);
+  }
+}
 
   function handleKeydown(event) {
     if (event.key === 'Enter') {
