@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Use environment variables from your .env file
 const firebaseConfig = {
@@ -15,7 +16,33 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore (if you're using Firestore)
+// Initialize Firestore
 const db = getFirestore(app);
 
-export { db };
+// Initialize Firebase Authentication
+const auth = getAuth(app);
+
+// Google Auth Provider
+const googleAuthProvider = new GoogleAuthProvider();
+
+// Google sign-in function
+export function signInWithGoogle() {
+  return signInWithPopup(auth, googleAuthProvider);
+}
+
+// Email/Password sign-up function
+export function signUpWithEmail(email, password) {
+  return createUserWithEmailAndPassword(auth, email, password);
+}
+
+// Email/Password sign-in function
+export function signInWithEmail(email, password) {
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+// Logout function
+export function signOutUser() {
+  return auth.signOut();
+}
+
+export { db, auth };
