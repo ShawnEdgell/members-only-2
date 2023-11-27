@@ -86,7 +86,10 @@
     }
   }
 
-  async function handleGoogleSignIn() {
+  async function handleGoogleSignIn(event) {
+    // Prevent default form submission behavior
+    event.preventDefault();
+
     try {
       const userCredential = await signInWithGoogle();
       const uid = userCredential.user.uid;
@@ -95,7 +98,6 @@
       await saveUserData(uid, newUsername, userEmail);
       closeModal();
     } catch (error) {
-      // Only set the error message if there's an actual error with Google sign-in
       errorMessage = 'Error signing in with Google: ' + error.message;
     }
   }

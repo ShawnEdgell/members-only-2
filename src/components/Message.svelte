@@ -5,7 +5,7 @@
   export let hideAuthor;
 
   function formatTimestamp(time) {
-    if (!time) return '';
+    if (!time) return 'Sending...'; // Placeholder text
     try {
       const date = time.toDate ? time.toDate() : new Date(time);
       const formattedDate = isToday(date) ? 'Today' : format(date, 'MM/dd/yyyy');
