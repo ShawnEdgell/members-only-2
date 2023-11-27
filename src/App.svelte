@@ -1,6 +1,6 @@
 <script>
   import Chat from './components/Chat.svelte';
-  import SignInSignUpModal from './components/SignInSignUpModal.svelte'; // Import unified modal
+  import SignInSignUpModal from './components/SignInSignUpModal.svelte';
   import { user } from './stores/userStore.js';
   import { signOutUser } from '../firebase.js';
 
@@ -38,7 +38,7 @@
           <button 
             class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             on:click={openModal}>
-            Login
+            Login / Sign Up
           </button>
         {/if}
       </div>

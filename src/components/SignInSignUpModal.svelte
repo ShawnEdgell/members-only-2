@@ -1,6 +1,10 @@
 <script>
-  import { signInWithEmail, signInWithGoogle, signUpWithEmail } from '../../firebase.js';
+  import { signInWithEmail, saveUsername, signInWithGoogle, signUpWithEmail } from '../../firebase.js';
   import { fade, scale } from 'svelte/transition';
+  import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+
+  // Initialize Firestore
+  const db = getFirestore();
 
   export let closeModal;
 
@@ -32,9 +36,11 @@
       errorMessage = 'Password must be at least 6 characters long.';
       return;
     }
-    
+
     try {
-      await signUpWithEmail(email, password);
+      const userCredential = await signUpWithEmail(email, password);
+      const uid = userCredential.user.uid;
+      await saveUsername(uid, username);
       closeModal();
     } catch (error) {
       errorMessage = 'Error signing up: ' + error.message;
@@ -43,17 +49,31 @@
 
   async function handleLogin() {
     errorMessage = '';
-    if (!validateEmail(email)) {
-      errorMessage = 'Invalid email format.';
-      return;
-    }
+    let loginEmail = email;
+
     if (password.length < 6) {
       errorMessage = 'Password must be at least 6 characters long.';
       return;
     }
 
+    if (!validateEmail(email)) {
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where("username", "==", email));
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          errorMessage = 'Invalid username or email.';
+          return;
+        }
+        loginEmail = querySnapshot.docs[0].data().email;
+      } catch (err) {
+        errorMessage = 'Error resolving username: ' + err.message;
+        return;
+      }
+    }
+
     try {
-      await signInWithEmail(email, password);
+      await signInWithEmail(loginEmail, password);
       closeModal();
     } catch (error) {
       errorMessage = 'Error logging in: ' + error.message;
@@ -62,7 +82,14 @@
 
   async function handleGoogleSignIn() {
     try {
-      await signInWithGoogle();
+      const userCredential = await signInWithGoogle();
+      const uid = userCredential.user.uid;
+      const userDocRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        const newUsername = userCredential.user.displayName || 'GoogleUser';
+        await setDoc(userDocRef, { username: newUsername, email: userCredential.user.email });
+      }
       closeModal();
     } catch (error) {
       errorMessage = 'Error signing in with Google: ' + error.message;

@@ -45,10 +45,10 @@ export function signOutUser() {
   return auth.signOut();
 }
 
-// Function to save username in Firestore
 export async function saveUsername(uid, username) {
   const userDocRef = doc(db, 'users', uid);
-  return setDoc(userDocRef, { username });
+  await setDoc(userDocRef, { username });
 }
+
 
 export { db, auth };
