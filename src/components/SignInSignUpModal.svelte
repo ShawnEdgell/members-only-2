@@ -1,14 +1,13 @@
 <script>
-  import { signInWithEmail, saveUsername, signInWithGoogle, signUpWithEmail } from '../../firebase.js';
+  import { signInWithEmail, saveUserData, signInWithGoogle, signUpWithEmail } from '../../firebase.js';
   import { fade, scale } from 'svelte/transition';
-  import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+  import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
-  // Initialize Firestore
   const db = getFirestore();
 
   export let closeModal;
 
-  let email = '';
+  let emailOrUsername = '';
   let password = '';
   let username = '';
   let isLogin = false;
@@ -28,7 +27,7 @@
       errorMessage = 'Invalid username. Use 3-15 characters and include only letters, numbers, and underscores.';
       return;
     }
-    if (!validateEmail(email)) {
+    if (!validateEmail(emailOrUsername)) {
       errorMessage = 'Invalid email format.';
       return;
     }
@@ -38,9 +37,9 @@
     }
 
     try {
-      const userCredential = await signUpWithEmail(email, password);
+      const userCredential = await signUpWithEmail(emailOrUsername, password);
       const uid = userCredential.user.uid;
-      await saveUsername(uid, username);
+      await saveUserData(uid, username, emailOrUsername);
       closeModal();
     } catch (error) {
       errorMessage = 'Error signing up: ' + error.message;
@@ -49,31 +48,8 @@
 
   async function handleLogin() {
     errorMessage = '';
-    let loginEmail = email;
-
-    if (password.length < 6) {
-      errorMessage = 'Password must be at least 6 characters long.';
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      try {
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, where("username", "==", email));
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-          errorMessage = 'Invalid username or email.';
-          return;
-        }
-        loginEmail = querySnapshot.docs[0].data().email;
-      } catch (err) {
-        errorMessage = 'Error resolving username: ' + err.message;
-        return;
-      }
-    }
-
     try {
-      await signInWithEmail(loginEmail, password);
+      await signInWithEmail(emailOrUsername, password);
       closeModal();
     } catch (error) {
       errorMessage = 'Error logging in: ' + error.message;
@@ -84,12 +60,9 @@
     try {
       const userCredential = await signInWithGoogle();
       const uid = userCredential.user.uid;
-      const userDocRef = doc(db, 'users', uid);
-      const userDoc = await getDoc(userDocRef);
-      if (!userDoc.exists()) {
-        const newUsername = userCredential.user.displayName || 'GoogleUser';
-        await setDoc(userDocRef, { username: newUsername, email: userCredential.user.email });
-      }
+      const userEmail = userCredential.user.email;
+      const newUsername = userCredential.user.displayName || 'GoogleUser';
+      await saveUserData(uid, newUsername, userEmail);
       closeModal();
     } catch (error) {
       errorMessage = 'Error signing in with Google: ' + error.message;
@@ -143,7 +116,7 @@
     </button>
 
     {#if errorMessage}
-     <p class="text-red-500 text-sm mb-2">{errorMessage}</p>
+      <p class="text-red-500 text-sm mb-2">{errorMessage}</p>
     {/if}
 
     {#if !isLogin}
@@ -156,7 +129,7 @@
       <input
         class="border p-2 rounded w-full mb-4"
         type="email"
-        bind:value={email}
+        bind:value={emailOrUsername}
         placeholder="Email"
       />
       <input
@@ -175,9 +148,9 @@
     {#if isLogin}
       <input
         class="border p-2 rounded w-full mb-4"
-        type="email"
-        bind:value={email}
-        placeholder="Email"
+        type="text"
+        bind:value={emailOrUsername}
+        placeholder="Email or Username"
       />
       <input
         class="border p-2 rounded w-full mb-4"

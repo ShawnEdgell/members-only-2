@@ -1,8 +1,13 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
-import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { 
+  getFirestore, doc, setDoc, collection, query, where, getDocs 
+} from 'firebase/firestore';
+import { 
+  getAuth, GoogleAuthProvider, signInWithPopup, 
+  createUserWithEmailAndPassword, signInWithEmailAndPassword 
+} from 'firebase/auth';
 
-// Firebase configuration from your environment variables
+// Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
   authDomain: import.meta.env.VITE_AUTH_DOMAIN,
@@ -35,20 +40,46 @@ export function signUpWithEmail(email, password) {
   return createUserWithEmailAndPassword(auth, email, password);
 }
 
-// Function for signing in with email/password
-export function signInWithEmail(email, password) {
-  return signInWithEmailAndPassword(auth, email, password);
-}
-
 // Function for logging out
 export function signOutUser() {
   return auth.signOut();
 }
 
-export async function saveUsername(uid, username) {
-  const userDocRef = doc(db, 'users', uid);
-  await setDoc(userDocRef, { username });
+// Function to find user email by username
+export async function findEmailByUsername(username) {
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, where('username', '==', username));
+  const querySnapshot = await getDocs(q);
+
+  if (!querySnapshot.empty) {
+    const userDoc = querySnapshot.docs[0].data();
+    return userDoc.email;
+  } else {
+    return null;
+  }
 }
 
+// Updated function for signing in with email/username and password
+export async function signInWithEmail(emailOrUsername, password) {
+  let email = emailOrUsername;
+  if (!emailOrUsername.includes('@')) {
+    const resolvedEmail = await findEmailByUsername(emailOrUsername);
+    if (!resolvedEmail) {
+      throw new Error('User not found');
+    }
+    email = resolvedEmail;
+  }
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+// Function to save user data (including email)
+export async function saveUserData(uid, username, email = null) {
+  const userDocRef = doc(db, 'users', uid);
+  const userData = { username };
+  if (email) {
+    userData.email = email;
+  }
+  await setDoc(userDocRef, userData);
+}
 
 export { db, auth };
