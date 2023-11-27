@@ -7,12 +7,13 @@
 
   export let closeModal;
 
-  let email = ''; // Use only email
+  let email = '';
   let password = '';
-  let username = ''; // Keep username for registration
+  let confirmPassword = '';
+  let username = '';
   let isLogin = false;
   let errorMessage = '';
-  let confirmPassword = ''; // New variable for the retype password field
+  let formErrorMessage = '';
 
   function validateUsername(username) {
     return /^[a-zA-Z0-9_]{3,15}$/.test(username);
@@ -22,29 +23,50 @@
     return /\S+@\S+\.\S+/.test(email);
   }
 
+  function checkFormValidity() {
+    formErrorMessage = '';
+    if (isLogin) {
+      if (!email || !password) {
+        formErrorMessage = 'Please fill out all fields.';
+        return false;
+      }
+      if (!validateEmail(email)) {
+        formErrorMessage = 'Invalid email format.';
+        return false;
+      }
+      return true;
+    } else {
+      if (!email || !password || !confirmPassword || !username) {
+        formErrorMessage = 'Please fill out all fields.';
+        return false;
+      }
+      if (!validateEmail(email)) {
+        formErrorMessage = 'Invalid email format.';
+        return false;
+      }
+      if (password.length < 6) {
+        formErrorMessage = 'Password must be at least 6 characters long.';
+        return false;
+      }
+      if (password !== confirmPassword) {
+        formErrorMessage = 'Passwords do not match.';
+        return false;
+      }
+      return true;
+    }
+  }
+
   async function handleSignUp() {
     errorMessage = '';
-    if (password !== confirmPassword) {
-      errorMessage = 'Passwords do not match.';
+    if (!checkFormValidity()) {
       return;
     }
-    if (!validateUsername(username)) {
-      errorMessage = 'Invalid username. Use 3-15 characters and include only letters, numbers, and underscores.';
-      return;
-    }
-    if (!validateEmail(email)) {
-      errorMessage = 'Invalid email format.';
-      return;
-    }
-    if (password.length < 6) {
-      errorMessage = 'Password must be at least 6 characters long.';
-      return;
-    }
-
     try {
       const userCredential = await signUpWithEmail(email, password);
       const uid = userCredential.user.uid;
-      await saveUserData(uid, username, email); // Save email and username
+      await saveUserData(uid, username, email);
+      // Automatically log in the user after sign up
+      await signInWithEmail(email, password);
       closeModal();
     } catch (error) {
       errorMessage = 'Error signing up: ' + error.message;
@@ -53,6 +75,9 @@
 
   async function handleLogin() {
     errorMessage = '';
+    if (!checkFormValidity()) {
+      return;
+    }
     try {
       await signInWithEmail(email, password);
       closeModal();
@@ -67,9 +92,10 @@
       const uid = userCredential.user.uid;
       const userEmail = userCredential.user.email;
       const newUsername = userCredential.user.displayName || 'GoogleUser';
-      await saveUserData(uid, newUsername, userEmail); // Save email and username
+      await saveUserData(uid, newUsername, userEmail);
       closeModal();
     } catch (error) {
+      // Only set the error message if there's an actual error with Google sign-in
       errorMessage = 'Error signing in with Google: ' + error.message;
     }
   }
@@ -109,7 +135,7 @@
        role="dialog"
        aria-modal="true"
        aria-labelledby="signInSignUpDialogTitle"
-       in:scale={{ duration: 300 }}
+       in:scale={{ duration: 300 }} 
        out:scale={{ duration: 300 }}
        on:click={event => event.stopPropagation()}>
 
@@ -122,9 +148,9 @@
       &#10005;
     </button>
 
-    <form on:submit|preventDefault={isLogin ? handleLogin : handleSignUp}>
-      {#if errorMessage}
-        <p class="text-red-500 text-sm mb-2">{errorMessage}</p>
+    <form on:submit|preventDefault={handleSubmit}>
+      {#if errorMessage || formErrorMessage}
+        <p class="text-red-500 text-sm mb-2">{errorMessage || formErrorMessage}</p>
       {/if}
 
       {#if !isLogin}
@@ -139,17 +165,20 @@
                placeholder="Create a password" />
 
         <input class="border p-2 rounded w-full mb-4 text-gray-800"
+               type="password"
+               bind:value={confirmPassword}
+               placeholder="Retype password" />
+
+        <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="text"
                bind:value={username}
                placeholder="Username" />
 
         <button class="bg-blue-500 text-white p-2 rounded w-full mb-4 hover:bg-blue-600"
                 type="submit">
-          Continue
+          Sign Up
         </button>
-      {/if}
-
-      {#if isLogin}
+      {:else}
         <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="email"
                bind:value={email}
@@ -162,36 +191,34 @@
 
         <button class="bg-blue-500 text-white p-2 rounded w-full mb-4 hover:bg-blue-600"
                 type="submit">
-          Continue
+          Log In
         </button>
       {/if}
+
+      <div class="flex items-center my-4">
+        <hr class="flex-grow border-t border-gray-300">
+        <span class="mx-4 text-gray-500">or</span>
+        <hr class="flex-grow border-t border-gray-300">
+      </div>
+
+      {#if !isLogin}
+        <button class="flex items-center justify-center bg-white text-gray-700 p-2 rounded w-full mb-4 border border-gray-300 hover:bg-gray-100"
+                on:click={handleGoogleSignIn}>
+          <img src="google.svg" alt="Google logo" class="h-6 mr-2">
+          Sign In with Google
+        </button>
+        <p class="text-center text-sm text-gray-600">
+          Already a member? 
+          <a href="javascript:void(0)" class="text-blue-500 underline" on:click={switchToLogin}>Log in</a>
+        </p>
+      {/if}
+
+      {#if isLogin}
+        <p class="text-center text-sm text-gray-600">
+          Need an account? 
+          <a href="javascript:void(0)" class="text-blue-500 underline" on:click={switchToSignUp}>Sign Up</a>
+        </p>
+      {/if}
     </form>
-
-    <div class="flex items-center my-4">
-      <hr class="flex-grow border-t border-gray-300">
-      <span class="mx-4 text-gray-500">or</span>
-      <hr class="flex-grow border-t border-gray-300">
-    </div>
-
-    {#if !isLogin}
-      <button class="flex items-center justify-center bg-white text-gray-700 p-2 rounded w-full mb-4 border border-gray-300 hover:bg-gray-100"
-              on:click={handleGoogleSignIn}>
-        <img src="google.svg" alt="Google logo" class="h-6 mr-2">
-        Sign In with Google
-      </button>
-      <p class="text-center text-sm text-gray-600">
-        Already a member? 
-        <a href="javascript:void(0)" class="text-blue-500 underline" on:click={switchToLogin}>Log in</a>
-      </p>
-    {/if}
-
-    {#if isLogin}
-      <p class="text-center text-sm text-gray-600">
-        Need an account? 
-        <a href="javascript:void(0)" class="text-blue-500 underline" on:click={switchToSignUp}>Sign Up</a>
-      </p>
-    {/if}
   </div>
 </div>
-
-
