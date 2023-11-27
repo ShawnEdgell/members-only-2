@@ -12,6 +12,7 @@
   let username = ''; // Keep username for registration
   let isLogin = false;
   let errorMessage = '';
+  let confirmPassword = ''; // New variable for the retype password field
 
   function validateUsername(username) {
     return /^[a-zA-Z0-9_]{3,15}$/.test(username);
@@ -23,6 +24,10 @@
 
   async function handleSignUp() {
     errorMessage = '';
+    if (password !== confirmPassword) {
+      errorMessage = 'Passwords do not match.';
+      return;
+    }
     if (!validateUsername(username)) {
       errorMessage = 'Invalid username. Use 3-15 characters and include only letters, numbers, and underscores.';
       return;
@@ -108,7 +113,7 @@
        out:scale={{ duration: 300 }}
        on:click={event => event.stopPropagation()}>
 
-    <h2 id="signInSignUpDialogTitle" class="text-lg font-bold mb-4">
+    <h2 id="signInSignUpDialogTitle" class="text-lg text-gray-800 font-bold mb-4">
       {isLogin ? 'Log In' : 'Sign Up'}
     </h2>
 
@@ -123,17 +128,17 @@
       {/if}
 
       {#if !isLogin}
-        <input class="border p-2 rounded w-full mb-4"
+        <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="email"
                bind:value={email}
                placeholder="Email" />
 
-        <input class="border p-2 rounded w-full mb-4"
+        <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="password"
                bind:value={password}
                placeholder="Create a password" />
 
-        <input class="border p-2 rounded w-full mb-4"
+        <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="text"
                bind:value={username}
                placeholder="Username" />
@@ -145,12 +150,12 @@
       {/if}
 
       {#if isLogin}
-        <input class="border p-2 rounded w-full mb-4"
+        <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="email"
                bind:value={email}
                placeholder="Email" />
 
-        <input class="border p-2 rounded w-full mb-4"
+        <input class="border p-2 rounded w-full mb-4 text-gray-800"
                type="password"
                bind:value={password}
                placeholder="Password" />

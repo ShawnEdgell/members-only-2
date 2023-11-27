@@ -1,15 +1,15 @@
 <script>
-  import { format } from 'date-fns';
+  import { format, isToday } from 'date-fns';
 
   export let message;
   export let hideAuthor;
-  export let timestamp;
 
-  function formatTime(time) {
+  function formatTimestamp(time) {
     if (!time) return '';
     try {
       const date = time.toDate ? time.toDate() : new Date(time);
-      return format(date, 'h:mma').toLowerCase();
+      const formattedDate = isToday(date) ? 'Today' : format(date, 'MM/dd/yyyy');
+      return `${formattedDate} at ${format(date, 'h:mma').toLowerCase()}`;
     } catch (e) {
       console.error("Invalid timestamp:", e);
       return '';
@@ -17,10 +17,14 @@
   }
 </script>
 
-<div class="p-4 my-2 bg-gray-100 rounded shadow">
+<div class="p-4 my-2 bg-gray-800 rounded shadow">
   {#if !hideAuthor}
-    <div class="font-semibold">{message.author}</div>
+    <div class="font-semibold">
+      {message.author}
+      <span class="text-gray-500 text-sm normal-case mx-1">
+        {formatTimestamp(message.timestamp)}
+      </span>
+    </div>
   {/if}
   <p>{message.text}</p>
-  <div class="text-right text-sm text-gray-600">{formatTime(message.timestamp)}</div>
 </div>

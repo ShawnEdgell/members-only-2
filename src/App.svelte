@@ -23,29 +23,29 @@
   }
 </script>
 
-<main class="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-  <div class="w-full max-w-lg bg-white rounded-lg shadow-lg overflow-hidden">
-    <header class="bg-blue-500 text-white text-lg font-bold p-4 flex justify-between items-center">
-      <span>Chat App</span>
-      <div>
-        {#if $user}
-          <button 
-            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            on:click={handleLogout}>
-            Logout
-          </button>
-        {:else}
-          <button 
-            class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-            on:click={openModal}>
-            Login / Sign Up
-          </button>
-        {/if}
-      </div>
-    </header>
-    {#if showModal}
-      <SignInSignUpModal {closeModal} />
-    {/if}
+<main class="flex flex-col h-screen bg-gray-900 text-white">
+  <header class="bg-gray-900 border-b border-gray-800 text-lg font-bold p-4 flex justify-between items-center">
+    <span>Chat App</span>
+    <div>
+      {#if $user}
+        <button 
+          class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          on:click={handleLogout}>
+          Logout
+        </button>
+      {:else}
+        <button 
+          class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+          on:click={openModal}>
+          Login / Sign Up
+        </button>
+      {/if}
+    </div>
+  </header>
+  {#if showModal}
+    <SignInSignUpModal {closeModal} />
+  {/if}
+  <div class="flex-grow overflow-hidden">
     <Chat />
   </div>
 </main>

@@ -93,21 +93,21 @@
   }
 </script>
 
-<div class="flex flex-col" style="height: calc(100vh - 8rem);">
-  <div class="flex-1 overflow-y-auto p-4" bind:this={messageContainer}>
+<div class="flex flex-col h-full">
+  <div class="flex-1 overflow-y-auto p-4 max-w-2xl w-full mx-auto" bind:this={messageContainer}>
     {#each messages as message, index}
       {#if isNewDay(message, index)}
-        <div class="text-center text-gray-600 my-2">
+        <div class="text-center text-gray-400 my-2">
           {formatDate(message.timestamp)}
         </div>
       {/if}
-      <Message {message} hideAuthor={!user} timestamp={formatTime(message.timestamp)} />
+      <Message {message} hideAuthor={!user} />
     {/each}
   </div>
   {#if user}
-    <div class="flex p-4 border-t border-gray-200">
+    <div class="flex p-4 border-t border-gray-800">
       <input
-        class="flex-grow p-2 border rounded"
+        class="flex-grow p-2 bg-gray-800 border border-gray-700 rounded"
         type="text"
         bind:value={newMessage}
         placeholder="Type a message..."
