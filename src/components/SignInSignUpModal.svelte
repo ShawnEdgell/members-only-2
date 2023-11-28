@@ -2,6 +2,7 @@
   import { signInWithEmail, saveUserData, signInWithGoogle, signUpWithEmail } from '../../firebase.js';
   import { fade, scale } from 'svelte/transition';
   import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+  import googleLogo from '../assets/google.svg';
 
   const db = getFirestore();
 
@@ -206,7 +207,7 @@
       {#if !isLogin}
         <button class="flex items-center justify-center bg-white text-gray-700 p-2 rounded w-full mb-4 border border-gray-300 hover:bg-gray-100"
                 on:click={handleGoogleSignIn}>
-          <img src="google.svg" alt="Google logo" class="h-6 mr-2">
+                <img src={googleLogo} alt="Google logo" class="h-6 mr-2">
           Sign In with Google
         </button>
         <p class="text-center text-sm text-gray-600">
